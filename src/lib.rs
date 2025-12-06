@@ -42,3 +42,11 @@ pub async fn handle_create_message(action : &WebRepository) {
 pub async fn handle_get_all_messages(action: &WebRepository) -> Result<Vec<Message>, Error> {
     action.read_all().await
 }
+
+pub async fn handel_update(action : &WebRepository, message_id : i32, title : String, description : String) {
+    action.update(message_id, title, description).await.expect("update message failed");
+}
+
+pub async fn handel_delete(action : &WebRepository, message_id : i32) {
+    action.delete(message_id).await.expect("delete message failed");
+}

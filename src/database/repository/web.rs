@@ -13,6 +13,9 @@ pub struct WebRepository {
 pub trait PgWebRepository {
     async fn create(&self, message : Message) -> Result<(), Error>;
     async fn read_all(&self) -> Result<Vec<Message>, Error>;
+
+    async fn update(&self, message_id : i32, title : String, description : String) -> Result<(), Error>;
+    async fn delete(&self, message_id : i32) -> Result<(), Error>;
 }
 
 impl WebRepository {
@@ -36,5 +39,18 @@ impl PgWebRepository for WebRepository {
             .fetch_all(&self.pool)
             .await?;
         Ok(query)
+    }
+
+    async fn update(&self, message_id : i32, title : String, description : String) -> Result<(), Error> {
+        sqlx::query!("UPDATE Message set title = $1, description = $2 where message_id = $3", title, description, message_id)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
+    }
+    async fn delete(&self, message_id : i32) -> Result<(), Error> {
+        sqlx::query!("DELETE FROM Message where message_id = $1", message_id)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
     }
 }
