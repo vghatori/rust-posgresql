@@ -27,7 +27,6 @@ async fn handle_message() -> Json<Message>{
 async fn main() {
     let cors = build_cors_permission(Any);
     let db_api = handle_setup_db().await.db;
-    // println!("{:#?}", handle_get_all_messages(db_api.clone()).await);
     let messages = handle_get_all_messages(&db_api)
         .await
         .unwrap_or_else(|err| {
@@ -37,19 +36,7 @@ async fn main() {
     for (index, message) in messages.iter().enumerate() {
         println!("message {} : {:#?}", index, message);
     }
-
-    // handel_update(&db_api, 1, "Isoland".into(), "A Survival Game".into()).await;
-
-    let messages = handle_get_all_messages(&db_api)
-        .await
-        .unwrap_or_else(|err| {
-            eprint!("{:?}", err);
-            vec![]
-        });
-    for (index, message) in messages.iter().enumerate() {
-        println!("message {} : {:#?}", index, message);
-    }
-
+    
     let webapp = Router::new().route("/message", get(handle_message)).layer(cors);
     let listener = TcpListener::bind("127.0.0.1:8080").await.unwrap();
     serve(listener, webapp).await.unwrap();
