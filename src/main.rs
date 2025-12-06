@@ -33,6 +33,7 @@ async fn main() {
             eprint!("{:?}", err);
             vec![]
         });
+
     for (index, message) in messages.iter().enumerate() {
         println!("message {} : {:#?}", index, message);
     }
