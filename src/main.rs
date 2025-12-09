@@ -1,33 +1,44 @@
 
 
-mod database;
-mod middleware;
 
-use database::{
-    models::message::Message,
-};
-
-use axum::{Router, routing::get, serve, Json};
+use axum::{Json, Router, routing::{get, post}, serve};
 use tokio::net::TcpListener;
 use tower_http::cors::Any;
-use be_server::{handel_delete, handel_update, handle_create_message, handle_get_all_messages, handle_setup_db};
-use middleware::cors::build_cors_permission;
 
+use be_server::{
+    method_create_message, method_get_all_messages, method_setup_db,
+    database::models::message::Message,
+    middleware::cors::build_cors_permission
+};
 
-async fn handle_message() -> Json<Message>{
-    Json(
-        Message {
-            title : "Hello World 1".into(),
-            description : "This is a test 2".into()
-        }
-    )
+async fn handle_message() -> Json<Vec<Message>>{
+    let db_api = method_setup_db().await.db;
+    let messages = method_get_all_messages(&db_api)
+        .await
+        .unwrap_or_else(|err| {
+            eprint!("{:?}", err);
+            vec![]
+        });
+    Json(messages)
+}
+
+async fn handle_create_message(Json(payload): Json<Message>) {
+    print!("Payload received: {:?}", payload);
+    let db_api = method_setup_db().await.db;
+    method_create_message(&db_api, payload).await;
 }
 
 #[tokio::main]
 async fn main() {
     let cors = build_cors_permission(Any);
-    let db_api = handle_setup_db().await.db;
-    let messages = handle_get_all_messages(&db_api)
+    let db_api = method_setup_db().await.db;
+
+    // method_create_message(&db_api ,Message {
+    //     title : "Isogame".to_string(),
+    //     description : "2.5D Game".to_string()
+    // }).await;
+
+    let messages = method_get_all_messages(&db_api)
         .await
         .unwrap_or_else(|err| {
             eprint!("{:?}", err);
@@ -37,7 +48,10 @@ async fn main() {
         println!("message {} : {:#?}", index, message);
     }
     
-    let webapp = Router::new().route("/message", get(handle_message)).layer(cors);
+    let webapp = Router::new()
+    .route("/message", get(handle_message))
+    .route("/create", post(handle_create_message))
+    .layer(cors);
     let listener = TcpListener::bind("127.0.0.1:8080").await.unwrap();
     serve(listener, webapp).await.unwrap();
 }
