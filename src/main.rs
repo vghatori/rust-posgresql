@@ -33,11 +33,6 @@ async fn main() {
     let cors = build_cors_permission(Any);
     let db_api = method_setup_db().await.db;
 
-    // method_create_message(&db_api ,Message {
-    //     title : "Isogame".to_string(),
-    //     description : "2.5D Game".to_string()
-    // }).await;
-
     let messages = method_get_all_messages(&db_api)
         .await
         .unwrap_or_else(|err| {
